@@ -1,0 +1,41 @@
+name: GGWave
+version: '1.0-Alpha'
+main: org.lulunoel2016.gGWave.GGWave
+api-version: '1.21'
+load: STARTUP
+authors: [ lulunoel2016 ]
+folia-supported: true
+
+commands:
+  ggwave:
+    description: Commande principale du plugin GGWave
+    usage: /<command> [start|stop|reload|info|help]
+    aliases: [gwave, ggw]
+
+permissions:
+  ggwave.*:
+    description: Donne accès à toutes les commandes GGWave
+    default: op
+    children:
+      ggwave.start: true
+      ggwave.stop: true
+      ggwave.reload: true
+      ggwave.info: true
+
+  ggwave.start:
+    description: Permet de lancer une vague de GG
+    default: op
+
+  ggwave.stop:
+    description: Permet d'arrêter une vague de GG
+    default: op
+
+  ggwave.reload:
+    description: Permet de recharger la configuration
+    default: op
+
+  ggwave.info:
+    description: Permet de voir les informations d'une vague
+    default: op
+
+softdepend: [Vault]
