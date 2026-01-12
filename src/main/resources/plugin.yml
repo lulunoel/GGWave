@@ -1,5 +1,5 @@
 name: GGWave
-version: '1.0-Alpha'
+version: '4.0.0'
 main: org.lulunoel2016.gGWave.GGWave
 api-version: '1.21'
 load: STARTUP
