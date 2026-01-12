@@ -18,6 +18,9 @@ Plugin Minecraft qui permet de lancer des vagues de félicitations (GG) avec pix
 - **Version** : 1.21.11
 - **Java** : 17 ou supérieure
 - **Vault** (optionnel) : Pour les récompenses en argent
+   - Vault : https://www.spigotmc.org/resources/vault.34315/
+   - Plugin d'économie : EssentialsX, CMI, etc.
+   - Voir VAULT-GUIDE.md pour l'installation complète
 
 ## 📦 Installation
 
@@ -93,9 +96,9 @@ wave:
 
 1. **Lancement** : Un admin utilise `/ggwave start <joueur>`
 2. **Affichage** : Un message élaboré apparaît dans le chat avec :
-    - Le pixel art de la tête du joueur
-    - Un message de remerciement personnalisé
-    - Le lien vers la boutique
+   - Le pixel art de la tête du joueur
+   - Un message de remerciement personnalisé
+   - Le lien vers la boutique
 3. **Participation** : Les joueurs tapent "GG" dans le chat
 4. **Transformation** : Le mot "gg" est automatiquement transformé en "GG" avec un dégradé de couleur animé
 5. **Récompenses** : Chaque joueur reçoit sa récompense une seule fois

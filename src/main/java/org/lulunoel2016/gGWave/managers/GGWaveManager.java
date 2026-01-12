@@ -9,6 +9,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.lulunoel2016.gGWave.GGWave;
+import org.lulunoel2016.gGWave.hooks.VaultHook;
 import org.lulunoel2016.gGWave.utils.ColorGradient;
 import org.lulunoel2016.gGWave.utils.PixelArtRenderer;
 
@@ -382,9 +383,20 @@ public class GGWaveManager {
     private void giveReward(Player player) {
         // Donner de l'argent (si Vault est présent)
         if (rewards.containsKey("money")) {
-            int amount = (int) rewards.get("money");
-            // Note: L'intégration Vault devrait être ajoutée pour donner de l'argent réel
-            player.sendMessage(ChatColor.GREEN + "Vous avez reçu " + amount + "$ pour avoir dit GG !");
+            double amount = ((Number) rewards.get("money")).doubleValue();
+
+            VaultHook vaultHook = plugin.getVaultHook();
+            if (vaultHook.isEnabled()) {
+                if (vaultHook.giveMoney(player, amount)) {
+                    String formattedAmount = vaultHook.format(amount);
+                    player.sendMessage(ChatColor.GREEN + "Vous avez reçu " + formattedAmount + " pour avoir dit GG !");
+                } else {
+                    plugin.getLogger().warning("Impossible de donner " + amount + "$ à " + player.getName());
+                }
+            } else {
+                // Vault non disponible, juste afficher un message
+                player.sendMessage(ChatColor.GOLD + "Vous auriez reçu " + amount + "$ (Vault non installé)");
+            }
         }
 
         // Donner des items (safe depuis n'importe quel thread)
