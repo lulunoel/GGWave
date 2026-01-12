@@ -88,21 +88,27 @@ gradient-colors:
 Résultat : **G** (rouge) **G** (vert) → **G** (vert) **G** (bleu) → ...
 
 #### Mode "progressive" (nouveau) ⭐
-Les deux lettres ont la même couleur qui évolue progressivement au fil de la vague.
+Les deux lettres ont la même couleur qui évolue progressivement à travers **TOUTES** les couleurs au fil de la vague.
 
 ```yaml
 gradient-mode: "progressive"
 gradient-colors:
-  - "#FF0000"  # Rouge (début)
-  - "#0000FF"  # Bleu (fin)
+  - "#FF0000"  # Rouge
+  - "#FFFF00"  # Jaune
+  - "#00FF00"  # Vert
+  - "#0000FF"  # Bleu
 ```
 
-Timeline :
+Timeline d'une vague de 5 minutes :
 ```
-Début de la vague    : GG (rouge)
-Milieu de la vague   : GG (violet)
-Fin de la vague      : GG (bleu)
+0:00  → GG (rouge)
+1:15  → GG (orange, transition rouge→jaune)
+2:30  → GG (jaune)
+3:45  → GG (vert clair, transition jaune→vert)
+5:00  → GG (bleu, fin de la transition)
 ```
+
+Le plugin passe **progressivement** par toutes les couleurs dans l'ordre !
 
 ### Configuration
 
@@ -111,54 +117,86 @@ wave:
   # Mode de dégradé
   gradient-mode: "progressive"  # ou "per-letter"
   
-  # Couleurs du dégradé
+  # En mode "progressive", utilise TOUTES les couleurs
   gradient-colors:
-    - "#FF0000"  # Couleur de départ
-    - "#0000FF"  # Couleur d'arrivée
-    # Note: En mode "progressive", seules les 2 premières couleurs sont utilisées
+    - "#FF0000"  # Couleur 1
+    - "#FFFF00"  # Couleur 2
+    - "#00FF00"  # Couleur 3
+    - "#0000FF"  # Couleur 4
+    # Vous pouvez en ajouter autant que vous voulez !
 ```
 
 ### Exemples de configurations
 
-#### Rouge → Jaune (chaleur croissante)
+#### Arc-en-ciel complet (7 couleurs)
 ```yaml
 gradient-mode: "progressive"
 gradient-colors:
   - "#FF0000"  # Rouge
+  - "#FF7F00"  # Orange
+  - "#FFFF00"  # Jaune
+  - "#00FF00"  # Vert
+  - "#0000FF"  # Bleu
+  - "#4B0082"  # Indigo
+  - "#9400D3"  # Violet
+```
+→ Passe par toutes les couleurs de l'arc-en-ciel progressivement !
+
+#### Feu intense (4 couleurs)
+```yaml
+gradient-mode: "progressive"
+gradient-colors:
+  - "#8B0000"  # Rouge foncé
+  - "#FF0000"  # Rouge vif
+  - "#FF4500"  # Orange-rouge
+  - "#FFD700"  # Or
+```
+→ Effet de feu qui s'intensifie !
+
+#### Océan profond (5 couleurs)
+```yaml
+gradient-mode: "progressive"
+gradient-colors:
+  - "#000080"  # Bleu marine
+  - "#0000FF"  # Bleu
+  - "#1E90FF"  # Bleu dodger
+  - "#00BFFF"  # Bleu ciel
+  - "#87CEEB"  # Bleu clair
+```
+→ Des profondeurs vers la surface !
+
+#### Coucher de soleil (6 couleurs)
+```yaml
+gradient-mode: "progressive"
+gradient-colors:
+  - "#FF4500"  # Orange-rouge
+  - "#FF6347"  # Tomate
+  - "#FF7F50"  # Corail
+  - "#FFA500"  # Orange
+  - "#FFD700"  # Or
   - "#FFFF00"  # Jaune
 ```
+→ Magnifique transition de coucher de soleil !
 
-#### Bleu → Rose (vibe chill)
-```yaml
-gradient-mode: "progressive"
-gradient-colors:
-  - "#0000FF"  # Bleu
-  - "#FF1493"  # Rose
-```
-
-#### Vert → Cyan (nature)
-```yaml
-gradient-mode: "progressive"
-gradient-colors:
-  - "#00FF00"  # Vert
-  - "#00FFFF"  # Cyan
-```
-
-#### Or → Blanc (premium)
-```yaml
-gradient-mode: "progressive"
-gradient-colors:
-  - "#FFD700"  # Or
-  - "#FFFFFF"  # Blanc
-```
-
-#### Noir → Or (élégance)
+#### Nuit étoilée (4 couleurs)
 ```yaml
 gradient-mode: "progressive"
 gradient-colors:
   - "#000000"  # Noir
-  - "#FFD700"  # Or
+  - "#191970"  # Bleu nuit
+  - "#483D8B"  # Violet ardoise
+  - "#9370DB"  # Violet moyen
 ```
+→ De la nuit noire aux premières lueurs !
+
+#### Simple 2 couleurs
+```yaml
+gradient-mode: "progressive"
+gradient-colors:
+  - "#FF0000"  # Rouge
+  - "#0000FF"  # Bleu
+```
+→ Transition simple et efficace rouge → violet → bleu
 
 ### Comportement
 
@@ -170,26 +208,52 @@ gradient-colors:
 
 **Mode progressive** :
 - Évolution linéaire sur toute la durée de la vague
-- Utilise seulement les 2 premières couleurs
+- Utilise **TOUTES** les couleurs de la liste
 - Les deux lettres ont la même couleur
+- Passe par chaque couleur dans l'ordre
+- Transition fluide entre chaque couleur
 - Effet calme et élégant
+
+### Exemples détaillés
+
+**Vague de 5 minutes avec 4 couleurs** :
+```yaml
+gradient-colors:
+  - "#FF0000"  # Rouge
+  - "#FFFF00"  # Jaune  
+  - "#00FF00"  # Vert
+  - "#0000FF"  # Bleu
+```
+
+Timeline :
+```
+0:00  → Rouge pur
+0:45  → Rouge-orange (transition 1→2)
+1:15  → Orange (milieu transition 1→2)
+2:00  → Jaune-orange
+2:30  → Jaune pur
+3:00  → Jaune-vert (transition 2→3)
+3:45  → Vert (milieu transition 2→3)
+4:15  → Vert-cyan
+5:00  → Bleu pur
+```
+
+**Plus vous ajoutez de couleurs, plus la transition est riche !**
 
 ### Comparaison visuelle
 
-**Vague de 5 minutes avec mode "progressive" (Rouge → Bleu)** :
-```
-0:00  → GG (rouge pur)
-1:15  → GG (rouge-violet)
-2:30  → GG (violet)
-3:45  → GG (bleu-violet)
-5:00  → GG (bleu pur)
-```
+**3 couleurs vs 7 couleurs** :
 
-**Même vague avec mode "per-letter"** :
-```
-Toutes les 5 secondes, les couleurs tournent :
-G (rouge) G (vert) → G (vert) G (bleu) → G (bleu) G (rouge) → ...
-```
+Avec 3 couleurs (Rouge, Vert, Bleu) :
+- 0% → Rouge
+- 50% → Vert
+- 100% → Bleu
+- Transitions rapides entre couleurs
+
+Avec 7 couleurs (arc-en-ciel) :
+- Transitions plus douces
+- Plus de nuances
+- Effet plus fluide et professionnel
 
 ### Combinaison avec les styles
 
