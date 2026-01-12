@@ -6,7 +6,7 @@
 
     <groupId>org.lulunoel2016</groupId>
     <artifactId>GGWave</artifactId>
-    <version>1.0.0</version>
+    <version>4.0.0</version>
     <packaging>jar</packaging>
 
     <name>GGWave</name>
