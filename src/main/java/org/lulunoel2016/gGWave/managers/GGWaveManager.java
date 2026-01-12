@@ -330,10 +330,10 @@ public class GGWaveManager {
 
     private String createProgressiveGradientGG() {
         // Mode progressif : les deux lettres ont la même couleur
-        // qui évolue progressivement de la couleur 1 vers la couleur 2
+        // qui évolue progressivement à travers TOUTES les couleurs de la liste
 
-        if (gradientColors.size() < 2) {
-            // Fallback au mode classique si pas assez de couleurs
+        if (gradientColors.isEmpty()) {
+            // Fallback au mode classique si pas de couleurs
             return createPerLetterGradientGG();
         }
 
@@ -342,12 +342,24 @@ public class GGWaveManager {
         long duration = waveDuration * 1000L; // Durée en millisecondes
         double progress = Math.min(1.0, (double) elapsed / duration);
 
-        // Obtenir les 2 premières couleurs
-        String color1Hex = gradientColors.get(0);
-        String color2Hex = gradientColors.get(1);
+        // Calculer la position dans la liste de couleurs
+        // progress varie de 0.0 à 1.0 sur toute la durée de la vague
+        // On veut passer par toutes les couleurs de la liste
+        double scaledProgress = progress * (gradientColors.size() - 1);
+
+        // Déterminer entre quelles couleurs on se trouve
+        int colorIndex1 = (int) Math.floor(scaledProgress);
+        int colorIndex2 = Math.min(colorIndex1 + 1, gradientColors.size() - 1);
+
+        // Calculer la progression locale entre ces deux couleurs
+        double localProgress = scaledProgress - colorIndex1;
+
+        // Obtenir les deux couleurs
+        String color1Hex = gradientColors.get(colorIndex1);
+        String color2Hex = gradientColors.get(colorIndex2);
 
         // Interpoler entre les deux couleurs
-        ChatColor currentColor = ColorGradient.interpolateColors(color1Hex, color2Hex, progress);
+        ChatColor currentColor = ColorGradient.interpolateColors(color1Hex, color2Hex, localProgress);
 
         // Construire le texte GG avec la couleur actuelle
         StringBuilder result = new StringBuilder();
