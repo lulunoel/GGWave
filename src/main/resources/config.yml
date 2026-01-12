@@ -5,12 +5,12 @@
 wave:
   # Durée de la vague en secondes
   duration: 300
-
+  
   # Message affiché dans la vague
   title: "&6&l✦ GG WAVE ✦"
   shop-message: "&aMerci pour votre achat sur notre boutique !"
   shop-link: "https://votreboutique.com"
-
+  
   # Configuration du dégradé de couleur pour "GG"
   # Format: liste de couleurs hexadécimales
   gradient-colors:
@@ -21,42 +21,43 @@ wave:
     - "#0000FF"  # Bleu
     - "#4B0082"  # Indigo
     - "#9400D3"  # Violet
-
+  
   # Mode de dégradé
   # - "per-letter" : Chaque lettre a une couleur différente (animation cyclique)
   # - "progressive" : Les deux lettres ont la même couleur qui évolue progressivement
-  #                   du début à la fin de la vague (utilise seulement les 2 premières couleurs)
+  #                   à travers TOUTES les couleurs de la liste au fil de la vague
+  #                   Exemple avec 4 couleurs : Rouge → Orange → Jaune → Vert
   gradient-mode: "progressive"
-
+  
   # Style du texte "GG"
   gg-style:
     bold: true          # Texte en gras
     italic: false       # Texte en italique
     underline: false    # Texte souligné
-
+  
   # Configuration du pixel art de la tête du joueur
   pixel-art:
     enabled: true
     size: 8  # Taille du pixel art (recommandé: 8)
-
+    
     # API pour télécharger les skins (plusieurs APIs sont essayées automatiquement)
     # APIs disponibles:
     # - mc-heads.net (rapide, fiable)
-    # - minotar.net (rapide, fiable)
+    # - minotar.net (rapide, fiable)  
     # - crafatar.com (peut être down)
     # Le plugin essaiera automatiquement plusieurs APIs en cas d'échec
     preferred-api: "mc-heads.net"
-
+  
   # Récompenses pour ceux qui disent GG
   rewards:
     # Argent (nécessite Vault)
     money: 100
-
+    
     # Items
     item:
       material: "DIAMOND"
       amount: 1
-
+    
     # Commandes personnalisées à exécuter
     # %player% sera remplacé par le nom du joueur
     commands:
