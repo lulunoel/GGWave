@@ -2,8 +2,6 @@
 
 ## Vous utilisez Folia !
 
-J'ai détecté que vous utilisez **Folia** (pas Spigot/Paper classique). Le plugin a été corrigé pour être compatible avec Folia.
-
 ## Différences avec Spigot/Paper
 
 Folia utilise un système de threading différent qui nécessite :
@@ -43,5 +41,6 @@ Puis dans le chat, tapez "gg" - vous devriez maintenant recevoir vos récompense
 - Le plugin est maintenant thread-safe et compatible Folia
 
 ---
+
 
 **Version compatible : Folia 1.21.11**
