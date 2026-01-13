@@ -22,8 +22,12 @@ public final class GGWave extends JavaPlugin {
         saveDefaultConfig();
 
         // Initialiser Vault
-        vaultHook = new VaultHook(this);
+        this.vaultHook = new VaultHook(this);
 
+        // Repousse le check d'1 tick (ou plus si besoin)
+        Bukkit.getScheduler().runTask(this, () -> {
+            vaultHook.setupEconomy();
+        });
         // Initialiser le gestionnaire de GG Wave
         ggWaveManager = new GGWaveManager(this);
 

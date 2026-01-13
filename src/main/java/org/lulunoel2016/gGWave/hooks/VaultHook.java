@@ -14,13 +14,12 @@ public class VaultHook {
 
     public VaultHook(GGWave plugin) {
         this.plugin = plugin;
-        setupEconomy();
     }
 
     /**
      * Configure Vault et l'économie si disponible
      */
-    private void setupEconomy() {
+    public void setupEconomy() {
         if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
             plugin.getLogger().info("Vault n'est pas installé. Les récompenses en argent seront désactivées.");
             return;
