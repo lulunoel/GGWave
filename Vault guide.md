@@ -14,6 +14,9 @@ Téléchargez Vault depuis :
 
 Placez `Vault.jar` dans votre dossier `plugins/`
 
+🛑 Fork Vault pour support folia :
+- SirBlobman : https://github.com/SirBlobman/Vault-Folia
+
 ### 2. Installer un plugin d'économie
 
 Vault seul ne suffit pas ! Vous devez aussi installer un plugin qui gère l'économie. Choisissez-en un :
@@ -337,5 +340,6 @@ Si vous avez des problèmes avec Vault :
 **Vault est optionnel** : Si vous ne voulez pas d'argent, supprimez simplement la ligne `money:` de la config !
 
 ---
+
 
 **Profitez des récompenses automatiques ! 💰**
