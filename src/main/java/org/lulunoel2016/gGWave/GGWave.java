@@ -24,10 +24,6 @@ public final class GGWave extends JavaPlugin {
         // Initialiser Vault
         this.vaultHook = new VaultHook(this);
 
-        // Repousse le check d'1 tick (ou plus si besoin)
-        Bukkit.getScheduler().runTask(this, () -> {
-            vaultHook.setupEconomy();
-        });
         // Initialiser le gestionnaire de GG Wave
         ggWaveManager = new GGWaveManager(this);
 
@@ -36,6 +32,7 @@ public final class GGWave extends JavaPlugin {
 
         // Enregistrer les listeners
         Bukkit.getPluginManager().registerEvents(new ChatListener(this, ggWaveManager), this);
+        Bukkit.getPluginManager().registerEvents(vaultHook, this);
 
         getLogger().info("GGWave plugin activé avec succès !");
 

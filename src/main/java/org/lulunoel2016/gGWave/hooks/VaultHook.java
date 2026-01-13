@@ -3,10 +3,13 @@ package org.lulunoel2016.gGWave.hooks;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.server.ServiceRegisterEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.lulunoel2016.gGWave.GGWave;
 
-public class VaultHook {
+public class VaultHook implements Listener {
 
     private final GGWave plugin;
     private Economy economy = null;
@@ -19,7 +22,7 @@ public class VaultHook {
     /**
      * Configure Vault et l'économie si disponible
      */
-    public void setupEconomy() {
+    public void     setupEconomy() {
         if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
             plugin.getLogger().info("Vault n'est pas installé. Les récompenses en argent seront désactivées.");
             return;
@@ -35,6 +38,12 @@ public class VaultHook {
         economy = rsp.getProvider();
         vaultEnabled = true;
         plugin.getLogger().info("Vault détecté ! Économie gérée par : " + economy.getName());
+    }
+    @EventHandler
+    public void onServiceRegister(ServiceRegisterEvent event) {
+        if (event.getProvider().getService() == Economy.class) {
+            setupEconomy();
+        }
     }
 
     /**
