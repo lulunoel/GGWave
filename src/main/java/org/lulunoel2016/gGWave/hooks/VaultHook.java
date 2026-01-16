@@ -3,49 +3,41 @@ package org.lulunoel2016.gGWave.hooks;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.server.ServiceRegisterEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.lulunoel2016.gGWave.GGWave;
 
-public class VaultHook implements Listener {
-
+public class VaultHook {
+    
     private final GGWave plugin;
     private Economy economy = null;
     private boolean vaultEnabled = false;
-
+    
     public VaultHook(GGWave plugin) {
         this.plugin = plugin;
+        setupEconomy();
     }
-
+    
     /**
      * Configure Vault et l'économie si disponible
      */
-    public void     setupEconomy() {
+    private void setupEconomy() {
         if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) {
             plugin.getLogger().info("Vault n'est pas installé. Les récompenses en argent seront désactivées.");
             return;
         }
-
+        
         RegisteredServiceProvider<Economy> rsp = plugin.getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp == null) {
             plugin.getLogger().warning("Vault est installé mais aucun plugin d'économie n'a été détecté !");
             plugin.getLogger().warning("Installez un plugin d'économie (EssentialsX, CMI, etc.) pour activer les récompenses en argent.");
             return;
         }
-
+        
         economy = rsp.getProvider();
         vaultEnabled = true;
         plugin.getLogger().info("Vault détecté ! Économie gérée par : " + economy.getName());
     }
-    @EventHandler
-    public void onServiceRegister(ServiceRegisterEvent event) {
-        if (event.getProvider().getService() == Economy.class) {
-            setupEconomy();
-        }
-    }
-
+    
     /**
      * Vérifie si Vault est disponible et configuré
      * @return true si Vault est prêt à être utilisé
@@ -53,7 +45,7 @@ public class VaultHook implements Listener {
     public boolean isEnabled() {
         return vaultEnabled && economy != null;
     }
-
+    
     /**
      * Donne de l'argent à un joueur
      * @param player Le joueur
@@ -64,7 +56,7 @@ public class VaultHook implements Listener {
         if (!isEnabled()) {
             return false;
         }
-
+        
         try {
             economy.depositPlayer(player, amount);
             return true;
@@ -73,7 +65,7 @@ public class VaultHook implements Listener {
             return false;
         }
     }
-
+    
     /**
      * Retire de l'argent à un joueur
      * @param player Le joueur
@@ -84,7 +76,7 @@ public class VaultHook implements Listener {
         if (!isEnabled()) {
             return false;
         }
-
+        
         try {
             if (economy.has(player, amount)) {
                 economy.withdrawPlayer(player, amount);
@@ -96,7 +88,7 @@ public class VaultHook implements Listener {
             return false;
         }
     }
-
+    
     /**
      * Obtient le solde d'un joueur
      * @param player Le joueur
@@ -106,7 +98,7 @@ public class VaultHook implements Listener {
         if (!isEnabled()) {
             return 0;
         }
-
+        
         try {
             return economy.getBalance(player);
         } catch (Exception e) {
@@ -114,7 +106,7 @@ public class VaultHook implements Listener {
             return 0;
         }
     }
-
+    
     /**
      * Formate un montant en utilisant le format de la monnaie
      * @param amount Le montant
@@ -124,14 +116,14 @@ public class VaultHook implements Listener {
         if (!isEnabled()) {
             return String.format("%.2f$", amount);
         }
-
+        
         try {
             return economy.format(amount);
         } catch (Exception e) {
             return String.format("%.2f$", amount);
         }
     }
-
+    
     /**
      * Obtient le nom de la devise (singulier)
      * @return Le nom de la devise
@@ -140,14 +132,14 @@ public class VaultHook implements Listener {
         if (!isEnabled()) {
             return "dollar";
         }
-
+        
         try {
             return economy.currencyNameSingular();
         } catch (Exception e) {
             return "dollar";
         }
     }
-
+    
     /**
      * Obtient le nom de la devise (pluriel)
      * @return Le nom de la devise au pluriel
@@ -156,7 +148,7 @@ public class VaultHook implements Listener {
         if (!isEnabled()) {
             return "dollars";
         }
-
+        
         try {
             return economy.currencyNamePlural();
         } catch (Exception e) {

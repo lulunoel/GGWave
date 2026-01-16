@@ -1,9 +1,10 @@
 name: GGWave
-version: '4.0.0'
+version: '5.0.0'
 main: org.lulunoel2016.gGWave.GGWave
 api-version: '1.21'
-load: STARTUP
-authors: [ lulunoel2016 ]
+author: LuluNoel2016
+description: Plugin de vague de GG avec pixel art et récompenses
+website:
 folia-supported: true
 
 commands:
@@ -21,21 +22,21 @@ permissions:
       ggwave.stop: true
       ggwave.reload: true
       ggwave.info: true
-
+      
   ggwave.start:
     description: Permet de lancer une vague de GG
     default: op
-
+    
   ggwave.stop:
     description: Permet d'arrêter une vague de GG
     default: op
-
+    
   ggwave.reload:
     description: Permet de recharger la configuration
     default: op
-
+    
   ggwave.info:
     description: Permet de voir les informations d'une vague
     default: op
 
-softdepend: [Vault, CMI, EssentialsX]
+softdepend: [Vault]

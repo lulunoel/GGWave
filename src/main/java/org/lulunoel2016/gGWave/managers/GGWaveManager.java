@@ -1,9 +1,14 @@
 package org.lulunoel2016.gGWave.managers;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import net.kyori.adventure.bossbar.BossBar;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -13,6 +18,7 @@ import org.lulunoel2016.gGWave.hooks.VaultHook;
 import org.lulunoel2016.gGWave.utils.ColorGradient;
 import org.lulunoel2016.gGWave.utils.PixelArtRenderer;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -24,9 +30,19 @@ public class GGWaveManager {
     private int waveDuration; // en secondes
     private Set<UUID> playersWhoSaidGG;
     private ScheduledTask waveTask;
+    private ScheduledTask bossbarTask;
+    private BossBar activeBossBar;
+    private Player currentWavePlayer; // Joueur pour lequel la vague est lancée
+
+    // Cooldown pour éviter le spam
+    private final Map<UUID, Long> lastGGTime = new HashMap<>();
+    private int ggCooldown = 3; // secondes entre chaque GG
 
     // File d'attente pour les vagues
     private final Queue<WaveRequest> waveQueue;
+
+    // Messages variés
+    private List<String> randomGGMessages;
 
     // Configuration
     private List<String> gradientColors;
@@ -44,6 +60,11 @@ public class GGWaveManager {
 
     // Mode de dégradé
     private String gradientMode; // "per-letter" ou "progressive"
+
+    // Effets visuels
+    private boolean bossbarEnabled;
+    private boolean titleEnabled;
+    private boolean soundEnabled;
 
     // Classe interne pour représenter une demande de vague
     private static class WaveRequest {
@@ -94,6 +115,26 @@ public class GGWaveManager {
         ggItalic = config.getBoolean("wave.gg-style.italic", false);
         ggUnderline = config.getBoolean("wave.gg-style.underline", false);
 
+        // Effets visuels
+        bossbarEnabled = config.getBoolean("wave.bossbar.enabled", true);
+        titleEnabled = config.getBoolean("wave.effects.title", true);
+        soundEnabled = config.getBoolean("wave.effects.sound", true);
+
+        // Messages variés
+        randomGGMessages = config.getStringList("wave.random-messages");
+        if (randomGGMessages.isEmpty()) {
+            randomGGMessages = Arrays.asList(
+                    "&aGG {player} !",
+                    "&aFélicitations {player} !",
+                    "&aBravo {player} pour ton achat !",
+                    "&aMerci {player} !",
+                    "&aSuper {player} !"
+            );
+        }
+
+        // Cooldown
+        ggCooldown = config.getInt("wave.gg-cooldown", 3);
+
         // Configuration du pixel art
         pixelArtEnabled = config.getBoolean("wave.pixel-art.enabled", true);
         pixelArtSize = config.getInt("wave.pixel-art.size", 8);
@@ -137,9 +178,16 @@ public class GGWaveManager {
         waveActive = true;
         waveStartTime = System.currentTimeMillis();
         playersWhoSaidGG.clear();
+        currentWavePlayer = targetPlayer; // Sauvegarder le joueur
 
         // Diffuser le message initial avec pixel art et informations
         broadcastWaveStart(targetPlayer);
+
+        // Afficher le titre et jouer le son
+        showTitleAndSound(targetPlayer);
+
+        // Démarrer la bossbar
+        startBossBar(targetPlayer);
 
         // Planifier l'arrêt automatique de la vague (compatible Folia)
         waveTask = Bukkit.getGlobalRegionScheduler().runDelayed(plugin, (task) -> {
@@ -255,6 +303,98 @@ public class GGWaveManager {
         Bukkit.broadcastMessage(separator);
     }
 
+    /**
+     * Affiche le titre et joue le son au démarrage de la vague
+     */
+    private void showTitleAndSound(Player targetPlayer) {
+        if (!titleEnabled && !soundEnabled) return;
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            // Afficher le titre
+            if (titleEnabled) {
+                Component title = Component.text("GG WAVE")
+                        .color(TextColor.color(255, 215, 0));
+                Component subtitle = Component.text("Pour " + targetPlayer.getName())
+                        .color(TextColor.color(255, 255, 255));
+
+                Title titleObj = Title.title(
+                        title,
+                        subtitle,
+                        Title.Times.times(
+                                Duration.ofMillis(500),  // fade in
+                                Duration.ofMillis(3000), // stay
+                                Duration.ofMillis(500)   // fade out
+                        )
+                );
+
+                player.showTitle(titleObj);
+            }
+
+            // Jouer le son
+            if (soundEnabled) {
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+            }
+        }
+    }
+
+    /**
+     * Démarre la bossbar de progression
+     */
+    private void startBossBar(Player targetPlayer) {
+        if (!bossbarEnabled) return;
+
+        // Créer la bossbar
+        activeBossBar = BossBar.bossBar(
+                Component.text("GG Wave pour " + targetPlayer.getName())
+                        .color(TextColor.color(255, 215, 0)),
+                1.0f,
+                BossBar.Color.YELLOW,
+                BossBar.Overlay.PROGRESS
+        );
+
+        // Afficher à tous les joueurs
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.showBossBar(activeBossBar);
+        }
+
+        // Task pour mettre à jour la progression
+        bossbarTask = Bukkit.getGlobalRegionScheduler().runAtFixedRate(plugin, (task) -> {
+            if (!waveActive || activeBossBar == null) {
+                task.cancel();
+                return;
+            }
+
+            long elapsed = System.currentTimeMillis() - waveStartTime;
+            float progress = 1.0f - ((float) elapsed / (waveDuration * 1000L));
+            progress = Math.max(0, Math.min(1, progress));
+
+            activeBossBar.progress(progress);
+
+            int remaining = (int) ((waveDuration * 1000L - elapsed) / 1000);
+            activeBossBar.name(Component.text(
+                    "GG Wave • " + playersWhoSaidGG.size() + " participants • " + remaining + "s"
+            ).color(TextColor.color(255, 215, 0)));
+
+        }, 1L, 20L); // Update toutes les secondes
+    }
+
+    /**
+     * Arrête la bossbar
+     */
+    private void stopBossBar() {
+        if (activeBossBar != null) {
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                player.hideBossBar(activeBossBar);
+            }
+            activeBossBar = null;
+        }
+
+        if (bossbarTask != null && !bossbarTask.isCancelled()) {
+            bossbarTask.cancel();
+            bossbarTask = null;
+        }
+    }
+
     public boolean isWaveActive() {
         return waveActive;
     }
@@ -273,6 +413,10 @@ public class GGWaveManager {
         // Donner la récompense si le joueur n'a pas encore dit GG
         if (!playersWhoSaidGG.contains(player.getUniqueId())) {
             playersWhoSaidGG.add(player.getUniqueId());
+
+            // Enregistrer dans les statistiques
+            plugin.getStatsManager().recordPlayerGG(player.getUniqueId());
+
             giveReward(player);
         }
 
@@ -438,7 +582,26 @@ public class GGWaveManager {
             return;
         }
 
+        // Calculer l'argent distribué
+        double moneyDistributed = 0;
+        if (rewards.containsKey("money") && plugin.getVaultHook().isEnabled()) {
+            double amount = ((Number) rewards.get("money")).doubleValue();
+            moneyDistributed = amount * playersWhoSaidGG.size();
+        }
+
+        // Enregistrer les statistiques
+        if (currentWavePlayer != null) {
+            plugin.getStatsManager().recordWave(
+                    currentWavePlayer.getName(),
+                    playersWhoSaidGG.size(),
+                    moneyDistributed
+            );
+        }
+
         waveActive = false;
+
+        // Arrêter la bossbar
+        stopBossBar();
 
         if (waveTask != null && !waveTask.isCancelled()) {
             waveTask.cancel();
@@ -455,6 +618,7 @@ public class GGWaveManager {
         Bukkit.broadcastMessage("");
 
         playersWhoSaidGG.clear();
+        currentWavePlayer = null;
     }
 
     public void stopAllWaves() {

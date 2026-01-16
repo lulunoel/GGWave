@@ -2,6 +2,7 @@ package org.lulunoel2016.gGWave.commands;
 
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -9,10 +10,10 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.lulunoel2016.gGWave.GGWave;
 import org.lulunoel2016.gGWave.managers.GGWaveManager;
+import org.lulunoel2016.gGWave.managers.StatsManager;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GGWaveCommand implements CommandExecutor, TabCompleter {
@@ -27,31 +28,25 @@ public class GGWaveCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
         if (args.length == 0) {
-            sendHelp(sender);
-            return true;
+            return handleHelp(sender);
         }
 
-        String subCommand = args[0].toLowerCase();
-
-        switch (subCommand) {
+        switch (args[0].toLowerCase()) {
             case "start":
                 return handleStart(sender, args);
-
             case "stop":
                 return handleStop(sender);
-
             case "reload":
                 return handleReload(sender);
-
             case "info":
                 return handleInfo(sender);
-
+            case "stats":
+                return handleStats(sender);
+            case "history":
+                return handleHistory(sender);
             case "help":
-                sendHelp(sender);
-                return true;
-
+                return handleHelp(sender);
             default:
                 sender.sendMessage(ChatColor.RED + "Commande inconnue. Utilisez /ggwave help");
                 return true;
@@ -70,19 +65,13 @@ public class GGWaveCommand implements CommandExecutor, TabCompleter {
         }
 
         Player targetPlayer = Bukkit.getPlayer(args[1]);
-        if (targetPlayer == null) {
-            sender.sendMessage(ChatColor.RED + "Joueur introuvable : " + args[1]);
+        if (targetPlayer == null || !targetPlayer.isOnline()) {
+            sender.sendMessage(ChatColor.RED + "Le joueur " + args[1] + " n'est pas en ligne !");
             return true;
         }
 
         Player senderPlayer = sender instanceof Player ? (Player) sender : null;
-        if (senderPlayer == null) {
-            // Depuis la console
-            manager.startWave(targetPlayer, null);
-            sender.sendMessage(ChatColor.GREEN + "Vague de GG lancée pour " + targetPlayer.getName() + " !");
-        } else {
-            manager.startWave(targetPlayer, senderPlayer);
-        }
+        manager.startWave(targetPlayer, senderPlayer);
 
         return true;
     }
@@ -94,12 +83,13 @@ public class GGWaveCommand implements CommandExecutor, TabCompleter {
         }
 
         if (!manager.isWaveActive()) {
-            sender.sendMessage(ChatColor.RED + "Aucune vague de GG n'est active actuellement !");
+            sender.sendMessage(ChatColor.RED + "Aucune vague n'est active !");
             return true;
         }
 
         manager.stopWave();
         sender.sendMessage(ChatColor.GREEN + "Vague de GG arrêtée !");
+
         return true;
     }
 
@@ -110,7 +100,9 @@ public class GGWaveCommand implements CommandExecutor, TabCompleter {
         }
 
         plugin.reloadConfig();
+        manager.reloadConfiguration();
         sender.sendMessage(ChatColor.GREEN + "Configuration rechargée avec succès !");
+
         return true;
     }
 
@@ -150,26 +142,95 @@ public class GGWaveCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
-    private void sendHelp(CommandSender sender) {
+    private boolean handleStats(CommandSender sender) {
+        if (!sender.hasPermission("ggwave.stats")) {
+            sender.sendMessage(ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande !");
+            return true;
+        }
+
+        StatsManager stats = plugin.getStatsManager();
+
         sender.sendMessage(ChatColor.GOLD + "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
-        sender.sendMessage(ChatColor.YELLOW + "" + ChatColor.BOLD + "Commandes GG Wave:");
+        sender.sendMessage(ChatColor.YELLOW + "Statistiques GGWave:");
         sender.sendMessage("");
-        sender.sendMessage(ChatColor.GREEN + "/ggwave start <joueur>" + ChatColor.GRAY + " - Lancer une vague de GG");
-        sender.sendMessage(ChatColor.GREEN + "/ggwave stop" + ChatColor.GRAY + " - Arrêter la vague en cours");
-        sender.sendMessage(ChatColor.GREEN + "/ggwave info" + ChatColor.GRAY + " - Voir les informations");
-        sender.sendMessage(ChatColor.GREEN + "/ggwave reload" + ChatColor.GRAY + " - Recharger la configuration");
-        sender.sendMessage(ChatColor.GREEN + "/ggwave help" + ChatColor.GRAY + " - Afficher cette aide");
+        sender.sendMessage(ChatColor.YELLOW + "Total de vagues: " + ChatColor.WHITE + stats.getTotalWavesLaunched());
+        sender.sendMessage(ChatColor.YELLOW + "Total de participations: " + ChatColor.WHITE + stats.getTotalParticipations());
+        sender.sendMessage(ChatColor.YELLOW + "Moyenne de participants: " + ChatColor.WHITE + String.format("%.1f", stats.getAverageParticipants()));
+
+        if (plugin.getVaultHook().isEnabled()) {
+            String formatted = plugin.getVaultHook().format(stats.getTotalMoneyDistributed());
+            sender.sendMessage(ChatColor.YELLOW + "Argent distribué: " + ChatColor.WHITE + formatted);
+        }
+
+        sender.sendMessage("");
+        sender.sendMessage(ChatColor.GOLD + "Top 5 Joueurs:");
+
+        int rank = 1;
+        for (Map.Entry<UUID, Integer> entry : stats.getTopPlayers(5)) {
+            OfflinePlayer player = Bukkit.getOfflinePlayer(entry.getKey());
+            String playerName = player.getName() != null ? player.getName() : "Inconnu";
+            sender.sendMessage(ChatColor.YELLOW + "#" + rank + " " + ChatColor.WHITE + playerName +
+                    ChatColor.GRAY + " - " + entry.getValue() + " GG");
+            rank++;
+        }
+
         sender.sendMessage(ChatColor.GOLD + "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        return true;
+    }
+
+    private boolean handleHistory(CommandSender sender) {
+        if (!sender.hasPermission("ggwave.history")) {
+            sender.sendMessage(ChatColor.RED + "Vous n'avez pas la permission d'utiliser cette commande !");
+            return true;
+        }
+
+        StatsManager stats = plugin.getStatsManager();
+        List<StatsManager.WaveRecord> recent = stats.getRecentWaves(10);
+
+        if (recent.isEmpty()) {
+            sender.sendMessage(ChatColor.YELLOW + "Aucune vague dans l'historique.");
+            return true;
+        }
+
+        sender.sendMessage(ChatColor.GOLD + "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        sender.sendMessage(ChatColor.YELLOW + "Historique des 10 dernières vagues:");
+        sender.sendMessage("");
+
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM HH:mm");
+        for (StatsManager.WaveRecord record : recent) {
+            String date = sdf.format(new Date(record.timestamp));
+            String moneyStr = plugin.getVaultHook().isEnabled() ?
+                    plugin.getVaultHook().format(record.moneyDistributed) :
+                    String.format("%.2f$", record.moneyDistributed);
+
+            sender.sendMessage(ChatColor.YELLOW + date + " " +
+                    ChatColor.WHITE + record.playerName +
+                    ChatColor.GRAY + " - " + record.participants + " participants - " + moneyStr);
+        }
+
+        sender.sendMessage(ChatColor.GOLD + "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        return true;
+    }
+
+    private boolean handleHelp(CommandSender sender) {
+        sender.sendMessage(ChatColor.GOLD + "▬▬▬▬▬▬▬▬ GGWave Commandes ▬▬▬▬▬▬▬▬");
+        sender.sendMessage(ChatColor.YELLOW + "/ggwave start <joueur>" + ChatColor.GRAY + " - Lance une vague de GG");
+        sender.sendMessage(ChatColor.YELLOW + "/ggwave stop" + ChatColor.GRAY + " - Arrête la vague en cours");
+        sender.sendMessage(ChatColor.YELLOW + "/ggwave info" + ChatColor.GRAY + " - Infos sur la vague actuelle");
+        sender.sendMessage(ChatColor.YELLOW + "/ggwave stats" + ChatColor.GRAY + " - Statistiques globales");
+        sender.sendMessage(ChatColor.YELLOW + "/ggwave history" + ChatColor.GRAY + " - Historique des vagues");
+        sender.sendMessage(ChatColor.YELLOW + "/ggwave reload" + ChatColor.GRAY + " - Recharge la configuration");
+        sender.sendMessage(ChatColor.YELLOW + "/ggwave help" + ChatColor.GRAY + " - Affiche cette aide");
+        sender.sendMessage(ChatColor.GOLD + "▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬");
+        return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-
         if (args.length == 1) {
-            List<String> subCommands = Arrays.asList("start", "stop", "reload", "info", "help");
-            return subCommands.stream()
-                    .filter(s -> s.toLowerCase().startsWith(args[0].toLowerCase()))
+            List<String> commands = Arrays.asList("start", "stop", "reload", "info", "stats", "history", "help");
+            return commands.stream()
+                    .filter(cmd -> cmd.toLowerCase().startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
         }
 
@@ -180,6 +241,6 @@ public class GGWaveCommand implements CommandExecutor, TabCompleter {
                     .collect(Collectors.toList());
         }
 
-        return completions;
+        return null;
     }
 }

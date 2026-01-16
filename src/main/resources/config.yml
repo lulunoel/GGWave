@@ -4,13 +4,13 @@
 
 wave:
   # Durée de la vague en secondes
-  duration: 300
-
+  duration: 5
+  
   # Message affiché dans la vague
   title: "&6&l✦ GG WAVE ✦"
   shop-message: "&aMerci pour votre achat sur notre boutique !"
   shop-link: "https://votreboutique.com"
-
+  
   # Configuration du dégradé de couleur pour "GG"
   # Format: liste de couleurs hexadécimales
   gradient-colors:
@@ -21,19 +21,50 @@ wave:
     - "#0000FF"  # Bleu
     - "#4B0082"  # Indigo
     - "#9400D3"  # Violet
-
+  
   # Mode de dégradé
   # - "per-letter" : Chaque lettre a une couleur différente (animation cyclique)
   # - "progressive" : Les deux lettres ont la même couleur qui évolue progressivement
   #                   à travers TOUTES les couleurs de la liste au fil de la vague
   #                   Exemple avec 4 couleurs : Rouge → Orange → Jaune → Vert
   gradient-mode: "progressive"
+  
+  # Messages variés (choisis aléatoirement)
+  # {player} sera remplacé par le nom du joueur
+  random-messages:
+    - "&aGG {player} !"
+    - "&aFélicitations {player} !"
+    - "&aBravo {player} pour ton achat !"
+    - "&aMerci {player} !"
+    - "&aSuper {player} !"
+    - "&a{player} est incroyable !"
+
+  # Cooldown anti-spam (secondes entre chaque GG du même joueur)
+  gg-cooldown: 3
 
   # Style du texte "GG"
   gg-style:
     bold: true          # Texte en gras
     italic: false       # Texte en italique
     underline: false    # Texte souligné
+
+  # Effets visuels
+  effects:
+    # Titre affiché à tous les joueurs au démarrage de la vague
+    title: true
+
+    # Son joué au démarrage
+    sound: true
+    sound-type: ENTITY_PLAYER_LEVELUP
+    # Autres sons possibles:
+    # - ENTITY_FIREWORK_ROCKET_LAUNCH
+    # - BLOCK_NOTE_BLOCK_PLING
+    # - UI_TOAST_CHALLENGE_COMPLETE
+
+  # Bossbar (barre en haut de l'écran)
+  bossbar:
+    enabled: true
+    color: YELLOW  # BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
 
   # Configuration du pixel art de la tête du joueur
   pixel-art:
@@ -73,3 +104,5 @@ wave:
 # ggwave.stop - Permet d'arrêter une vague en cours
 # ggwave.reload - Permet de recharger la configuration
 # ggwave.info - Permet de voir les informations de la vague
+# ggwave.stats - Permet de voir les statistiques globales
+# ggwave.history - Permet de voir l'historique des vagues

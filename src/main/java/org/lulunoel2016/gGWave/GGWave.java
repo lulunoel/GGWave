@@ -7,12 +7,14 @@ import org.lulunoel2016.gGWave.commands.GGWaveCommand;
 import org.lulunoel2016.gGWave.hooks.VaultHook;
 import org.lulunoel2016.gGWave.listeners.ChatListener;
 import org.lulunoel2016.gGWave.managers.GGWaveManager;
+import org.lulunoel2016.gGWave.managers.StatsManager;
 
 public final class GGWave extends JavaPlugin {
 
     private static GGWave instance;
     private GGWaveManager ggWaveManager;
     private VaultHook vaultHook;
+    private StatsManager statsManager;
 
     @Override
     public void onEnable() {
@@ -22,7 +24,10 @@ public final class GGWave extends JavaPlugin {
         saveDefaultConfig();
 
         // Initialiser Vault
-        this.vaultHook = new VaultHook(this);
+        vaultHook = new VaultHook(this);
+
+        // Initialiser le gestionnaire de statistiques
+        statsManager = new StatsManager(this);
 
         // Initialiser le gestionnaire de GG Wave
         ggWaveManager = new GGWaveManager(this);
@@ -32,7 +37,6 @@ public final class GGWave extends JavaPlugin {
 
         // Enregistrer les listeners
         Bukkit.getPluginManager().registerEvents(new ChatListener(this, ggWaveManager), this);
-        Bukkit.getPluginManager().registerEvents(vaultHook, this);
 
         getLogger().info("GGWave plugin activé avec succès !");
 
@@ -46,6 +50,11 @@ public final class GGWave extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        // Sauvegarder les statistiques
+        if (statsManager != null) {
+            statsManager.saveStats();
+        }
+
         // Arrêter toutes les vagues en cours
         if (ggWaveManager != null) {
             ggWaveManager.stopAllWaves();
@@ -66,11 +75,18 @@ public final class GGWave extends JavaPlugin {
         return vaultHook;
     }
 
+    public StatsManager getStatsManager() {
+        return statsManager;
+    }
+
     @Override
     public void reloadConfig() {
         super.reloadConfig();
         if (ggWaveManager != null) {
             ggWaveManager.reloadConfiguration();
+        }
+        if (statsManager != null) {
+            statsManager.loadStats();
         }
     }
 }

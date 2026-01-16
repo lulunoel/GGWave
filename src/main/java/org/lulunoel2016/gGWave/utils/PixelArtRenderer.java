@@ -14,18 +14,18 @@ import java.util.List;
 import java.util.Map;
 
 public class PixelArtRenderer {
-
+    
     // Cache pour éviter de télécharger plusieurs fois le même skin
     private static final Map<String, BufferedImage> skinCache = new HashMap<>();
-
+    
     // Liste des APIs disponibles pour télécharger les skins (avec fallback)
     private static final String[] SKIN_APIS = {
-            "https://mc-heads.net/skin/%s",           // API 1: mc-heads.net
-            "https://minotar.net/skin/%s",            // API 2: minotar.net
-            "https://crafatar.com/skins/%s",          // API 3: crafatar.com
-            "https://sessionserver.mojang.com/session/minecraft/profile/%s" // API 4: Mojang officiel
+        "https://mc-heads.net/skin/%s",           // API 1: mc-heads.net
+        "https://minotar.net/skin/%s",            // API 2: minotar.net
+        "https://crafatar.com/skins/%s",          // API 3: crafatar.com
+        "https://sessionserver.mojang.com/session/minecraft/profile/%s" // API 4: Mojang officiel
     };
-
+    
     /**
      * Rend la tête d'un joueur en pixel art dans le chat
      * @param player Le joueur dont on veut afficher la tête
@@ -34,18 +34,18 @@ public class PixelArtRenderer {
      */
     public static List<String> renderPlayerHead(Player player, int size) {
         List<String> lines = new ArrayList<>();
-
+        
         try {
             // Récupérer l'UUID sans tirets
             String uuid = player.getUniqueId().toString().replace("-", "");
             System.out.println("[GGWave] Génération du pixel art pour le joueur " + player.getName() + " (UUID: " + uuid + ")");
-
+            
             BufferedImage skin = skinCache.get(uuid);
-
+            
             if (skin == null) {
                 // Essayer de télécharger le skin depuis différentes APIs
                 skin = downloadSkinWithFallback(uuid);
-
+                
                 if (skin != null) {
                     skinCache.put(uuid, skin);
                     System.out.println("[GGWave] Skin mis en cache pour " + player.getName());
@@ -55,66 +55,66 @@ public class PixelArtRenderer {
             } else {
                 System.out.println("[GGWave] Skin récupéré depuis le cache pour " + player.getName());
             }
-
+            
             if (skin == null) {
                 return createFallbackPixelArt(player.getName(), size);
             }
-
+            
             // Extraire la face (8x8 pixels sur le skin 64x64)
             BufferedImage face = extractFace(skin);
-
+            
             // Redimensionner si nécessaire
             if (size != 8) {
                 face = resizeImage(face, size, size);
             }
-
+            
             // Convertir en lignes de chat avec des couleurs
             for (int y = 0; y < size; y++) {
                 StringBuilder line = new StringBuilder("  "); // Indentation
-
+                
                 for (int x = 0; x < size; x++) {
                     Color pixelColor = new Color(face.getRGB(x, y), true);
-
+                    
                     // Gérer la transparence
                     if (pixelColor.getAlpha() < 50) {
                         line.append("  ");
                     } else {
                         // Utiliser █ pour un meilleur rendu
                         ChatColor chatColor = ChatColor.of(new Color(
-                                pixelColor.getRed(),
-                                pixelColor.getGreen(),
-                                pixelColor.getBlue()
+                            pixelColor.getRed(),
+                            pixelColor.getGreen(),
+                            pixelColor.getBlue()
                         ));
                         line.append(chatColor).append("█");
                     }
                 }
-
+                
                 lines.add(line.toString());
             }
-
+            
         } catch (Exception e) {
             System.out.println("[GGWave] Erreur lors de la génération du pixel art: " + e.getMessage());
             e.printStackTrace();
             return createFallbackPixelArt(player.getName(), size);
         }
-
+        
         return lines;
     }
-
+    
     /**
      * Télécharge le skin en essayant plusieurs APIs (fallback)
      */
     private static BufferedImage downloadSkinWithFallback(String uuid) {
         // Retirer les tirets de l'UUID si présents
         String cleanUuid = uuid.replace("-", "");
-
+        
         for (String apiUrl : SKIN_APIS) {
             try {
                 String url = String.format(apiUrl, cleanUuid);
                 System.out.println("[GGWave] Tentative de téléchargement du skin depuis: " + url);
-
+                
                 BufferedImage skin = downloadImage(url);
-
+                
                 if (skin != null && skin.getWidth() > 0 && skin.getHeight() > 0) {
                     // Vérifier que c'est bien un skin Minecraft valide
                     if (skin.getWidth() == 64 && (skin.getHeight() == 64 || skin.getHeight() == 32)) {
@@ -130,11 +130,11 @@ public class PixelArtRenderer {
                 continue;
             }
         }
-
+        
         System.out.println("[GGWave] Toutes les APIs ont échoué, utilisation du fallback");
         return null;
     }
-
+    
     /**
      * Télécharge depuis l'API Mojang officielle (plus complexe mais plus fiable)
      */
@@ -143,7 +143,7 @@ public class PixelArtRenderer {
             // Étape 1 : Obtenir le profil du joueur
             String profileUrl = "https://sessionserver.mojang.com/session/minecraft/profile/" + uuid;
             URL url = new URL(profileUrl);
-
+            
             // Note: Cette méthode nécessiterait un parser JSON
             // Pour l'instant, on retourne null et on utilise le fallback
             return null;
@@ -151,7 +151,7 @@ public class PixelArtRenderer {
             return null;
         }
     }
-
+    
     /**
      * Extrait la partie "face" du skin Minecraft
      * La face est à (8, 8) et fait 8x8 pixels sur un skin 64x64
@@ -161,7 +161,7 @@ public class PixelArtRenderer {
         int faceX = 8;
         int faceY = 8;
         int faceSize = 8;
-
+        
         // Vérifier la taille du skin
         if (skin.getWidth() == 64 && skin.getHeight() == 64) {
             // Skin moderne (post 1.8)
@@ -179,7 +179,7 @@ public class PixelArtRenderer {
             }
         }
     }
-
+    
     /**
      * Télécharge une image depuis une URL avec timeout
      */
@@ -187,22 +187,22 @@ public class PixelArtRenderer {
         try {
             URL url = new URL(urlString);
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-
+            
             // Configurer la connexion
             connection.setConnectTimeout(5000); // 5 secondes
             connection.setReadTimeout(5000);    // 5 secondes
             connection.setRequestProperty("User-Agent", "GGWave-Plugin/1.0");
             connection.setInstanceFollowRedirects(true);
-
+            
             // Vérifier le code de réponse
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
                 System.out.println("[GGWave] Code de réponse HTTP: " + responseCode + " pour " + urlString);
                 return null;
             }
-
+            
             BufferedImage img = ImageIO.read(connection.getInputStream());
-
+            
             // Vérifier que l'image est valide
             if (img != null && img.getWidth() > 0 && img.getHeight() > 0) {
                 return img;
@@ -214,7 +214,7 @@ public class PixelArtRenderer {
         }
         return null;
     }
-
+    
     /**
      * Redimensionne une image avec interpolation nearest-neighbor
      */
@@ -226,46 +226,46 @@ public class PixelArtRenderer {
         g.dispose();
         return resized;
     }
-
+    
     /**
      * Crée un pixel art de fallback si le téléchargement échoue
      */
     private static List<String> createFallbackPixelArt(String playerName, int size) {
         List<String> lines = new ArrayList<>();
-
+        
         // Générer une couleur basée sur le nom du joueur
         int hash = Math.abs(playerName.hashCode());
         Color baseColor = new Color(
-                100 + (hash % 156),
-                100 + ((hash >> 8) % 156),
-                100 + ((hash >> 16) % 156)
+            100 + (hash % 156),
+            100 + ((hash >> 8) % 156),
+            100 + ((hash >> 16) % 156)
         );
-
+        
         ChatColor mainColor = ChatColor.of(baseColor);
         ChatColor darkColor = ChatColor.of(baseColor.darker());
         ChatColor lightColor = ChatColor.of(baseColor.brighter());
-
+        
         // Créer un motif simple de tête
         // Pattern: 0=vide, 1=foncé, 2=normal, 3=clair
         int[][] pattern = {
-                {0, 0, 1, 1, 1, 1, 0, 0},
-                {0, 1, 2, 2, 2, 2, 1, 0},
-                {1, 2, 2, 3, 3, 2, 2, 1},
-                {1, 2, 3, 2, 2, 3, 2, 1},
-                {1, 2, 2, 2, 2, 2, 2, 1},
-                {1, 2, 3, 2, 2, 3, 2, 1},
-                {0, 1, 2, 3, 3, 2, 1, 0},
-                {0, 0, 1, 1, 1, 1, 0, 0}
+            {0, 0, 1, 1, 1, 1, 0, 0},
+            {0, 1, 2, 2, 2, 2, 1, 0},
+            {1, 2, 2, 3, 3, 2, 2, 1},
+            {1, 2, 3, 2, 2, 3, 2, 1},
+            {1, 2, 2, 2, 2, 2, 2, 1},
+            {1, 2, 3, 2, 2, 3, 2, 1},
+            {0, 1, 2, 3, 3, 2, 1, 0},
+            {0, 0, 1, 1, 1, 1, 0, 0}
         };
-
+        
         int displaySize = Math.min(size, 8);
-
+        
         for (int y = 0; y < displaySize; y++) {
             StringBuilder line = new StringBuilder("  ");
             for (int x = 0; x < displaySize; x++) {
                 int value = pattern[y][x];
                 ChatColor color;
-
+                
                 switch (value) {
                     case 0:
                         line.append("  ");
@@ -282,15 +282,15 @@ public class PixelArtRenderer {
                     default:
                         color = mainColor;
                 }
-
+                
                 line.append(color).append("█");
             }
             lines.add(line.toString());
         }
-
+        
         return lines;
     }
-
+    
     /**
      * Vide le cache des skins
      */
